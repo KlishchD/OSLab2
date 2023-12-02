@@ -15,6 +15,10 @@ public:
 	std::shared_ptr<Process> GetNextProcess();
 	
 	bool HasProcesses();
+
+	void UpdateCurrentTime();
 private:
 	std::vector<std::shared_ptr<Process>> m_Processes;
+
+	int32_t m_CurrentTime = 1;
 };

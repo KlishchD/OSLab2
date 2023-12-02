@@ -15,7 +15,7 @@ void Scheduler::AddProcess(const std::shared_ptr<Process>& process)
 
 void Scheduler::RemoveProcess(const std::shared_ptr<Process>& process)
 {
-	int index = -1;
+	int32_t index = -1;
 	for (int32_t i = 0; i < m_Processes.size(); ++i) 
 	{
 		if (m_Processes[i] == process) 
@@ -38,17 +38,24 @@ const std::vector<std::shared_ptr<Process>>& Scheduler::GetProcesses() const
 
 std::shared_ptr<Process> Scheduler::GetNextProcess()
 {
-	int minUtilization = INT_MAX;
+	float minRatio = 10000.0f;
 	std::shared_ptr<Process> minProceess;
 
 	for (const std::shared_ptr<Process>& process : m_Processes) 
 	{
 		if (!process->IsBlocked()) 
 		{
-			int utilization = process->GetUtilization();
-			if (minUtilization > utilization)
+			int32_t creationTime = process->GetCreationTime();
+			float entitledTime = 1.0f * (m_CurrentTime - creationTime) / m_Processes.size();
+
+			int32_t utilization = process->GetUtilization();
+			int32_t weight = process->GetWeight();
+
+			float ratio = 1.0f * utilization / (weight * entitledTime);
+
+			if (minRatio > ratio)
 			{
-				minUtilization = utilization;
+				minRatio = ratio;
 				minProceess = process;
 			}
 		}
@@ -60,4 +67,9 @@ std::shared_ptr<Process> Scheduler::GetNextProcess()
 bool Scheduler::HasProcesses()
 {
 	return !m_Processes.empty();
+}
+
+void Scheduler::UpdateCurrentTime()
+{
+	++m_CurrentTime;
 }

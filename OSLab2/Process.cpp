@@ -1,8 +1,8 @@
 #include "Process.h"
 
-Process::Process(int32_t id, int32_t baseAddress, int32_t addressSize, int32_t priority) :
+Process::Process(int32_t id, int32_t baseAddress, int32_t addressSize, int32_t weight, int32_t time) :
     m_Id(id), m_BaseAddress(baseAddress), m_AddressSize(addressSize),
-    m_Priority(priority)
+    m_Weight(weight), m_CreationTime(time)
 {
 
 }
@@ -32,14 +32,24 @@ void Process::IncrementUtilization()
     m_Utilization++;
 }
 
-int Process::GetBaseAddress() const
+int32_t Process::GetBaseAddress() const
 {
     return m_BaseAddress;
 }
 
-int Process::GetAddressSize() const
+int32_t Process::GetAddressSize() const
 {
     return m_AddressSize;
+}
+
+int32_t Process::GetWeight() const
+{
+    return m_Weight;
+}
+
+int32_t Process::GetCreationTime() const
+{
+    return m_CreationTime;
 }
 
 bool Process::IsBlocked() const

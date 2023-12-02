@@ -9,7 +9,7 @@
 #include "Instructions.h"
 #include <iostream>
 
-#define DEFAULT_PRIORITY 1
+#define DEFAULT_WEIGHT 1
 #define CLOCK_PER_TIMER 100
 
 int32_t FreeProcessId = 0;
@@ -41,7 +41,7 @@ std::vector<std::shared_ptr<Process>> LoadProcesses(const std::vector<std::strin
 			}
 		}
 
-		std::shared_ptr<Process> process = std::make_shared<Process>(FreeProcessId, address - size, size, 60);
+		std::shared_ptr<Process> process = std::make_shared<Process>(FreeProcessId, address - size, size, DEFAULT_WEIGHT, 0);
 		FreeProcessId++;
 
 		processes.push_back(process);
@@ -81,6 +81,11 @@ ProcessStatus runProcessNextInstruction(const std::shared_ptr<Process>& process,
 	}
 }
 
+void LoadNextProcess(Scheduler& scheduler, Memory& memory, int32_t timer) {
+	memory.LoadProcess(scheduler.GetNextProcess());
+	timer = CLOCK_PER_TIMER;
+}
+
 int main(int argc, char* argv[])
 {
 	std::vector<std::string> files;
@@ -113,8 +118,7 @@ int main(int argc, char* argv[])
 
 				std::cout << "Process: " << process->GetId() << " is blocked for " << time << " cycles." << std::endl;
 
-				memory.LoadProcess(scheduler.GetNextProcess());
-				timer = CLOCK_PER_TIMER;
+				LoadNextProcess(scheduler, memory, CLOCK_PER_TIMER);
 
 				break;
 			}
@@ -123,8 +127,7 @@ int main(int argc, char* argv[])
 			default:
 				std::cout << "Process: " << process->GetId() << " is exiting." << std::endl;
 				scheduler.RemoveProcess(process);
-				memory.LoadProcess(scheduler.GetNextProcess());
-				timer = CLOCK_PER_TIMER;
+				LoadNextProcess(scheduler, memory, CLOCK_PER_TIMER);
 				break;
 			}
 			--timer;
@@ -132,10 +135,11 @@ int main(int argc, char* argv[])
 
 		if (!process || timer <= 0)
 		{
-			memory.LoadProcess(scheduler.GetNextProcess());
-			timer = CLOCK_PER_TIMER;
+			LoadNextProcess(scheduler, memory, CLOCK_PER_TIMER);
 		}
 
+		scheduler.UpdateCurrentTime();
+		
 		for (const std::shared_ptr<Process>& process : scheduler.GetProcesses())
 		{
 			process->DecrementBlockTime();
